@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:insta_reels/screens/splash_screen.dart';
 import 'screens/download_screen.dart';
 
 void main() {
@@ -18,7 +19,7 @@ class InstagramDownloaderApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         useMaterial3: true,
       ),
-      home: const DownloadScreen(),
+      home: const SplashScreen(),
     );
   }
 }
