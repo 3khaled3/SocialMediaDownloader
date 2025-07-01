@@ -143,18 +143,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
     );
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
-
+  
   void _showPreview() {
     if (_downloadedFilePath == null) return;
     if (_urlController.text.contains("youtube")) {
@@ -368,16 +357,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          "Social Media Downloader",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: 20,
-          ),
-        ),
         title: const Text(
           "Social Media Downloader",
           style: TextStyle(
@@ -394,32 +374,12 @@ class _DownloadScreenState extends State<DownloadScreen> {
             bottom: Radius.circular(16),
           ),
         ),
-        backgroundColor: Colors.blue.shade700,
-        elevation: 0,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(16),
-          ),
-        ),
       ),
-      body: SingleChildScrollView(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.defaultPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 16),
-            Text(
-              "Paste your link below",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
             const SizedBox(height: 16),
             Text(
               "Paste your link below",
@@ -468,63 +428,8 @@ class _DownloadScreenState extends State<DownloadScreen> {
                 ),
               ),
               style: const TextStyle(fontSize: 16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.defaultBorderRadius),
-                  borderSide: BorderSide(
-                    color: Colors.grey.shade300,
-                    width: 1,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.defaultBorderRadius),
-                  borderSide: BorderSide(
-                    color: Colors.blue.shade400,
-                    width: 2,
-                  ),
-                ),
-                prefixIcon: Icon(
-                  Icons.link_rounded,
-                  color: Colors.blue.shade600,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-              ),
-              style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 20),
-            SizedBox(
-              height: 50,
-              child: CustomButton(
-                text: "Fetch Media",
-                onPressed: () => _fetchMediaInfo(_urlController.text),
-                isLoading: _isFetching,
-                backgroundColor: Colors.blue.shade600,
-                foregroundColor: Colors.white,
-                icon: Icons.search_rounded,
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (_mediaUrl.isNotEmpty)
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: SizedBox(
-                  height: 50,
-                  child: CustomButton(
-                    key: ValueKey(_mediaUrl),
-                    text: "Download ${_mediaType.toUpperCase()}",
-                    onPressed: () => _downloadMedia(_mediaUrl),
-                    isLoading: _isDownloading,
-                    backgroundColor: Colors.green.shade600,
-                    foregroundColor: Colors.white,
-                    icon: Icons.download_rounded,
-                  ),
-                ),
             SizedBox(
               height: 50,
               child: CustomButton(
