@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
 class DownloadService {
-  Future<String> downloadMedia(String url, {String? mediaType}) async {
+  Future<Map<String, dynamic>> downloadMedia(String url, {String? mediaType}) async {
     if (url.isEmpty) {
       throw Exception('URL cannot be empty');
     }
@@ -32,7 +32,17 @@ class DownloadService {
     // Download file
     await Dio().download(url, savePath);
 
-    return savePath;
+    // Get file size
+    File file = File(savePath);
+    int fileSize = await file.length();
+
+    return {
+      'path': savePath,
+      'fileName': fileName,
+      'fileSize': fileSize,
+      'mediaType': mediaType ?? 'video',
+      'extension': fileExtension,
+    };
   }
 
   String _getFileExtension(String url, String? mediaType) {

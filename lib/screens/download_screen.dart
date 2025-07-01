@@ -3,6 +3,8 @@ import '../services/instagram_service.dart';
 import '../services/download_service.dart';
 import '../services/permission_service.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/video_preview.dart';
+import '../widgets/image_preview.dart';
 import '../utils/constants.dart';
 
 class DownloadScreen extends StatefulWidget {
@@ -23,6 +25,9 @@ class _DownloadScreenState extends State<DownloadScreen> {
   String _mediaType = "";
   bool _isFetching = false;
   bool _isDownloading = false;
+  String? _downloadedFilePath;
+  String? _downloadedFileName;
+  int? _downloadedFileSize;
 
   @override
   void initState() {
@@ -82,10 +87,13 @@ class _DownloadScreenState extends State<DownloadScreen> {
 
     try {
       await _requestPermissions();
-      final savePath = await _downloadService.downloadMedia(url, mediaType: _mediaType);
+      final result = await _downloadService.downloadMedia(url, mediaType: _mediaType);
 
       setState(() {
-        _status = "${AppConstants.downloadCompleteMessage}$savePath";
+        _downloadedFilePath = result['path'];
+        _downloadedFileName = result['fileName'];
+        _downloadedFileSize = result['fileSize'];
+        _status = "${AppConstants.downloadCompleteMessage}${result['fileName']}";
       });
     } catch (e) {
       setState(() {
@@ -95,6 +103,34 @@ class _DownloadScreenState extends State<DownloadScreen> {
       setState(() {
         _isDownloading = false;
       });
+    }
+  }
+
+  void _showPreview() {
+    if (_downloadedFilePath == null) return;
+
+    if (_mediaType == 'video') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => VideoPreview(
+            videoPath: _downloadedFilePath!,
+            onClose: () {
+              // Optional: Handle any cleanup when video preview is closed
+            },
+          ),
+        ),
+      );
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ImagePreview(
+            imagePath: _downloadedFilePath!,
+            onClose: () {
+              // Optional: Handle any cleanup when image preview is closed
+            },
+          ),
+        ),
+      );
     }
   }
 
@@ -164,6 +200,82 @@ class _DownloadScreenState extends State<DownloadScreen> {
               ),
             ],
             const SizedBox(height: 20),
+            if (_downloadedFilePath != null) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Downloaded: ${_downloadedFileName ?? "Unknown"}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              if (_downloadedFileSize != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Size: ${(_downloadedFileSize! / 1024 / 1024).toStringAsFixed(2)} MB',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          _mediaType == 'video' ? Icons.video_file : Icons.image,
+                          color: Colors.blue,
+                          size: 32,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomButton(
+                            text: "Preview ${_mediaType.toUpperCase()}",
+                            onPressed: _showPreview,
+                            backgroundColor: Colors.orange,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CustomButton(
+                            text: "Download Another",
+                            onPressed: () {
+                              setState(() {
+                                _downloadedFilePath = null;
+                                _downloadedFileName = null;
+                                _downloadedFileSize = null;
+                                _status = AppConstants.enterUrlMessage;
+                              });
+                            },
+                            backgroundColor: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
             Text(
               _status,
               textAlign: TextAlign.center,
