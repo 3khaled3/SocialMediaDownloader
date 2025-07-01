@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
 import '../services/instagram_service.dart';
 import '../services/download_service.dart';
 import '../services/permission_service.dart';
@@ -92,8 +95,9 @@ class _DownloadScreenState extends State<DownloadScreen> {
 
     try {
       await _requestPermissions();
-      final result =
-          await _downloadService.downloadMedia(url, mediaType: _mediaType);
+      final result = await _downloadService.downloadMedia(url,
+          mediaType:
+              _urlController.text.contains("youtube") ? "mp3" : _mediaType);
 
       setState(() {
         _downloadedFilePath = result['path'];
@@ -128,7 +132,14 @@ class _DownloadScreenState extends State<DownloadScreen> {
 
   void _showPreview() {
     if (_downloadedFilePath == null) return;
-
+    if (_urlController.text.contains("youtube")) {
+      //open file 
+      File file = File(_downloadedFilePath!);
+      if (file.existsSync()) {
+        OpenFile.open(file.path);
+      }
+      return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => _mediaType == 'video'
@@ -183,7 +194,11 @@ class _DownloadScreenState extends State<DownloadScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                _status.replaceAll("⚠️", "").replaceAll("❌", "").replaceAll("✅", "").trim(),
+                _status
+                    .replaceAll("⚠️", "")
+                    .replaceAll("❌", "")
+                    .replaceAll("✅", "")
+                    .trim(),
                 style: TextStyle(
                   color: textColor,
                   fontWeight: FontWeight.w500,
@@ -231,8 +246,8 @@ class _DownloadScreenState extends State<DownloadScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      _mediaType == 'video' 
-                          ? Icons.videocam_rounded 
+                      _mediaType == 'video'
+                          ? Icons.videocam_rounded
                           : Icons.image_rounded,
                       color: Colors.blue.shade800,
                       size: 24,
@@ -252,13 +267,11 @@ class _DownloadScreenState extends State<DownloadScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              _buildInfoRow(Icons.insert_drive_file, "File:", _downloadedFileName ?? "Unknown"),
+              _buildInfoRow(Icons.insert_drive_file, "File:",
+                  _downloadedFileName ?? "Unknown"),
               if (_downloadedFileSize != null)
-                _buildInfoRow(
-                  Icons.storage,
-                  "Size:", 
-                  "${(_downloadedFileSize! / 1024 / 1024).toStringAsFixed(2)} MB"
-                ),
+                _buildInfoRow(Icons.storage, "Size:",
+                    "${(_downloadedFileSize! / 1024 / 1024).toStringAsFixed(2)} MB"),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -367,7 +380,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
             TextField(
               controller: _urlController,
               decoration: InputDecoration(
-                hintText: "Paste Instagram or TikTok URL here",
+                hintText: "Paste Instagram, TikTok, or YouTube URL here",
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -431,8 +444,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
                   ),
                 ),
               ),
-            if (_downloadedFilePath != null) 
-              _buildDownloadInfoCard(),
+            if (_downloadedFilePath != null) _buildDownloadInfoCard(),
             _buildStatusMessage(),
             const SizedBox(height: 20),
             if (_mediaUrl.isEmpty && _downloadedFilePath == null)
@@ -457,7 +469,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      "Paste a link from Instagram or TikTok to download photos, videos, or reels",
+                      "Paste a link from Instagram, TikTok, or YouTube to download photos, videos, or reels",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.grey.shade600,
