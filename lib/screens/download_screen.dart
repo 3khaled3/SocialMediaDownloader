@@ -42,7 +42,8 @@ class _DownloadScreenState extends State<DownloadScreen> {
   Future<void> _fetchMediaInfo(String url) async {
     if (url.isEmpty) {
       setState(() {
-        _status = "Please enter a valid URL";
+        _status = "⚠️ Please enter a valid URL";
+        _showSnackBar("Please enter a valid URL");
       });
       return;
     }
@@ -52,6 +53,7 @@ class _DownloadScreenState extends State<DownloadScreen> {
       _status = AppConstants.fetchingMessage;
       _mediaUrl = "";
       _mediaType = "";
+      _downloadedFilePath = null;
     });
 
     try {
@@ -61,14 +63,17 @@ class _DownloadScreenState extends State<DownloadScreen> {
         if (result['success']) {
           _mediaUrl = result['download_url'];
           _mediaType = result['type'] ?? 'video';
-          _status = result['message'];
+          _status = "✅ ${result['message']}";
+          _showSnackBar("Media found! Ready to download");
         } else {
-          _status = result['message'];
+          _status = "❌ ${result['message']}";
+          _showSnackBar("Failed to fetch media: ${result['message']}");
         }
       });
     } catch (e) {
       setState(() {
-        _status = "${AppConstants.errorFetchingMessage}$e";
+        _status = "❌ ${AppConstants.errorFetchingMessage}";
+        _showSnackBar("Error fetching media: $e");
       });
     } finally {
       setState(() {
@@ -87,17 +92,20 @@ class _DownloadScreenState extends State<DownloadScreen> {
 
     try {
       await _requestPermissions();
-      final result = await _downloadService.downloadMedia(url, mediaType: _mediaType);
+      final result =
+          await _downloadService.downloadMedia(url, mediaType: _mediaType);
 
       setState(() {
         _downloadedFilePath = result['path'];
         _downloadedFileName = result['fileName'];
         _downloadedFileSize = result['fileSize'];
-        _status = "${AppConstants.downloadCompleteMessage}${result['fileName']}";
+        _status = "✅ ${AppConstants.downloadCompleteMessage}";
+        _showSnackBar("Download complete! Tap to preview");
       });
     } catch (e) {
       setState(() {
-        _status = "${AppConstants.errorDownloadingMessage}$e";
+        _status = "❌ ${AppConstants.errorDownloadingMessage}";
+        _showSnackBar("Download failed: $e");
       });
     } finally {
       setState(() {
@@ -106,184 +114,358 @@ class _DownloadScreenState extends State<DownloadScreen> {
     }
   }
 
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
   void _showPreview() {
     if (_downloadedFilePath == null) return;
 
-    if (_mediaType == 'video') {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => VideoPreview(
-            videoPath: _downloadedFilePath!,
-            onClose: () {
-              // Optional: Handle any cleanup when video preview is closed
-            },
-          ),
-        ),
-      );
-    } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ImagePreview(
-            imagePath: _downloadedFilePath!,
-            onClose: () {
-              // Optional: Handle any cleanup when image preview is closed
-            },
-          ),
-        ),
-      );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => _mediaType == 'video'
+            ? VideoPreview(videoPath: _downloadedFilePath!, onClose: () {})
+            : ImagePreview(imagePath: _downloadedFilePath!, onClose: () {}),
+      ),
+    );
+  }
+
+  void _resetDownloadState() {
+    setState(() {
+      _downloadedFilePath = null;
+      _downloadedFileName = null;
+      _downloadedFileSize = null;
+      _status = AppConstants.enterUrlMessage;
+      _mediaUrl = "";
+      _urlController.clear();
+    });
+  }
+
+  Widget _buildStatusMessage() {
+    Color textColor = Colors.grey[800]!;
+    IconData statusIcon = Icons.info_outline;
+
+    if (_status.contains("❌")) {
+      textColor = Colors.red[600]!;
+      statusIcon = Icons.error_outline;
+    } else if (_status.contains("✅")) {
+      textColor = Colors.green[700]!;
+      statusIcon = Icons.check_circle_outline;
+    } else if (_status.contains("⚠️")) {
+      textColor = Colors.orange[700]!;
+      statusIcon = Icons.warning_amber_outlined;
     }
+
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(top: 16),
+      color: Colors.grey[100],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(statusIcon, color: textColor),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _status.replaceAll("⚠️", "").replaceAll("❌", "").replaceAll("✅", "").trim(),
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDownloadInfoCard() {
+    return Card(
+      elevation: 5,
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: _showPreview,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.blue.shade50,
+                Colors.blue.shade100,
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade200,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _mediaType == 'video' 
+                          ? Icons.videocam_rounded 
+                          : Icons.image_rounded,
+                      color: Colors.blue.shade800,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      "Download Complete!",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildInfoRow(Icons.insert_drive_file, "File:", _downloadedFileName ?? "Unknown"),
+              if (_downloadedFileSize != null)
+                _buildInfoRow(
+                  Icons.storage,
+                  "Size:", 
+                  "${(_downloadedFileSize! / 1024 / 1024).toStringAsFixed(2)} MB"
+                ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: CustomButton(
+                        text: "Preview",
+                        onPressed: _showPreview,
+                        backgroundColor: Colors.orange.shade600,
+                        foregroundColor: Colors.white,
+                        icon: Icons.play_arrow_rounded,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: CustomButton(
+                        text: "New Download",
+                        onPressed: _resetDownloadState,
+                        backgroundColor: Colors.grey.shade300,
+                        foregroundColor: Colors.grey.shade800,
+                        icon: Icons.refresh_rounded,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: Colors.blueGrey.shade600),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Colors.blueGrey.shade800,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Colors.blueGrey.shade700,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text("Social Media Downloader"),
+        title: const Text(
+          "Social Media Downloader",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 20,
+          ),
+        ),
         centerTitle: true,
+        backgroundColor: Colors.blue.shade700,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.defaultPadding),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SizedBox(height: 16),
+            Text(
+              "Paste your link below",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _urlController,
               decoration: InputDecoration(
-                hintText: "Enter Instagram or TikTok URL",
+                hintText: "Paste Instagram or TikTok URL here",
+                filled: true,
+                fillColor: Colors.white,
                 border: OutlineInputBorder(
                   borderRadius:
                       BorderRadius.circular(AppConstants.defaultBorderRadius),
+                  borderSide: BorderSide.none,
                 ),
-                filled: true,
-                fillColor: Colors.grey[200],
+                enabledBorder: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(AppConstants.defaultBorderRadius),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade300,
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(AppConstants.defaultBorderRadius),
+                  borderSide: BorderSide(
+                    color: Colors.blue.shade400,
+                    width: 2,
+                  ),
+                ),
+                prefixIcon: Icon(
+                  Icons.link_rounded,
+                  color: Colors.blue.shade600,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 50,
+              child: CustomButton(
+                text: "Fetch Media",
+                onPressed: () => _fetchMediaInfo(_urlController.text),
+                isLoading: _isFetching,
+                backgroundColor: Colors.blue.shade600,
+                foregroundColor: Colors.white,
+                icon: Icons.search_rounded,
               ),
             ),
-            const SizedBox(height: 20),
-            CustomButton(
-              text: "Fetch Media URL",
-              onPressed: () => _fetchMediaInfo(_urlController.text),
-              isLoading: _isFetching,
-              backgroundColor: Colors.blue,
-            ),
-            const SizedBox(height: 20),
-            if (_mediaUrl.isNotEmpty) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green[200]!),
+            const SizedBox(height: 12),
+            if (_mediaUrl.isNotEmpty)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: SizedBox(
+                  height: 50,
+                  child: CustomButton(
+                    key: ValueKey(_mediaUrl),
+                    text: "Download ${_mediaType.toUpperCase()}",
+                    onPressed: () => _downloadMedia(_mediaUrl),
+                    isLoading: _isDownloading,
+                    backgroundColor: Colors.green.shade600,
+                    foregroundColor: Colors.white,
+                    icon: Icons.download_rounded,
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    Text(
-                      "Media Type: ${_mediaType.toUpperCase()}",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
+              ),
+            if (_downloadedFilePath != null) 
+              _buildDownloadInfoCard(),
+            _buildStatusMessage(),
+            const SizedBox(height: 20),
+            if (_mediaUrl.isEmpty && _downloadedFilePath == null)
+              Column(
+                children: [
+                  const SizedBox(height: 40),
+                  Icon(
+                    Icons.download_rounded,
+                    size: 80,
+                    color: Colors.blue.shade200,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Download social media content",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      "Paste a link from Instagram or TikTok to download photos, videos, or reels",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "URL: ${_mediaUrl.length > 50 ? '${_mediaUrl.substring(0, 50)}...' : _mediaUrl}",
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-              CustomButton(
-                text: "Download ${_mediaType.toUpperCase()}",
-                onPressed: () => _downloadMedia(_mediaUrl),
-                isLoading: _isDownloading,
-                backgroundColor: Colors.green,
-              ),
-            ],
-            const SizedBox(height: 20),
-            if (_downloadedFilePath != null) ...[
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue[200]!),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Downloaded: ${_downloadedFileName ?? "Unknown"}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              if (_downloadedFileSize != null) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Size: ${(_downloadedFileSize! / 1024 / 1024).toStringAsFixed(2)} MB',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          _mediaType == 'video' ? Icons.video_file : Icons.image,
-                          color: Colors.blue,
-                          size: 32,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CustomButton(
-                            text: "Preview ${_mediaType.toUpperCase()}",
-                            onPressed: _showPreview,
-                            backgroundColor: Colors.orange,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: CustomButton(
-                            text: "Download Another",
-                            onPressed: () {
-                              setState(() {
-                                _downloadedFilePath = null;
-                                _downloadedFileName = null;
-                                _downloadedFileSize = null;
-                                _status = AppConstants.enterUrlMessage;
-                              });
-                            },
-                            backgroundColor: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-            Text(
-              _status,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _status.contains("Error") ? Colors.red : Colors.black,
-                fontSize: 16,
-              ),
-            ),
           ],
         ),
       ),
