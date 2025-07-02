@@ -21,11 +21,9 @@ A simple and efficient Flutter application to download Instagram Reels and media
 
 ## 🖼️ Screenshots
 
-*Add your screenshots in a `screenshots/` directory and reference them here for a more visual README!*
-
-| Splash Screen | Download Screen |
-|---------------|----------------|
-| *(screenshot here)* | *(screenshot here)* |
+| Splash Screen | Search Screen | Video Preview | Success State |
+|---------------|----------------|----------------|----------------|
+| ![Splash](screenshots/splach.png) | ![Search](screenshots/search.png) | ![Video Preview](screenshots/video_privew.png) | ![Success](screenshots/success_state.png) |
 
 ---
 
