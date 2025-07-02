@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:insta_reels/screens/splash_screen.dart';
-import 'screens/download_screen.dart';
 
 void main() {
   runApp(const InstagramDownloaderApp());

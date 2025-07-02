@@ -23,9 +23,6 @@ class DownloadService {
 
     // Determine file extension based on URL and media type
     String fileExtension = _getFileExtension(url, mediaType);
-    print(fileExtension);
-    print(url);
-    print(mediaType);
 
     // Generate filename with timestamp
     String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
@@ -75,10 +72,6 @@ class DownloadService {
 
     // Default fallback
     return '.mp4';
-  }
-
-  bool _isYouTubeUrl(String url) {
-    return url.contains('youtube.com') || url.contains('youtu.be');
   }
 
   Future<bool> checkStoragePermission() async {
