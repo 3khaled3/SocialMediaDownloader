@@ -1,7 +1,7 @@
 
 ---
 
-# 📥 Instagram Reels Downloader
+# 📥 Social Media Downloader
 
 A simple and efficient Flutter application to download Instagram Reels and media content directly to your device. Paste an Instagram post or reel URL, fetch the media, and download it with ease!
 
