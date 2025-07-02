@@ -1,179 +1,112 @@
-# Instagram Reels Downloader
 
-A Flutter application that allows users to download Instagram reels, posts, and TikTok videos directly to their device. This app provides a simple and intuitive interface for downloading social media content.
+---
 
-## Features
+# 📥 Instagram Reels Downloader
 
-- **Instagram Support**: Download Instagram reels, posts, and stories
-- **TikTok Support**: Download TikTok videos with multiple extraction methods
-- **Cross-Platform**: Works on Android, iOS, Windows, macOS, and Linux
-- **Modern UI**: Clean Material Design 3 interface
-- **Permission Handling**: Automatic storage permission requests
-- **Progress Tracking**: Real-time download progress and status updates
-- **Error Handling**: Comprehensive error messages and fallback mechanisms
+A simple and efficient Flutter application to download Instagram Reels and media content directly to your device. Paste an Instagram post or reel URL, fetch the media, and download it with ease!
 
-## Screenshots
+---
 
-*Screenshots will be added here*
+## 🚀 Features
 
-## Getting Started
+- **Instagram Media Download**: Download videos from Instagram Reels and posts.
+- **URL Validation**: Ensures only valid Instagram URLs are processed.
+- **Video Preview**: Watch the video before downloading.
+- **File Management**: Saves files to device storage with proper permissions.
+- **Cross-Platform**: Works on Android and iOS.
+- **Clean Architecture**: Separation of UI, business logic, and data models.
+- **Reusable Widgets**: Custom buttons, image, and video previews.
 
-### Prerequisites
+---
 
-- Flutter SDK (>=3.0.0)
-- Dart SDK (>=3.0.0)
-- Android Studio / VS Code
-- Git
+## 🖼️ Screenshots
 
-### Installation
+*Add your screenshots in a `screenshots/` directory and reference them here for a more visual README!*
 
-1. **Clone the repository**
+| Splash Screen | Download Screen |
+|---------------|----------------|
+| *(screenshot here)* | *(screenshot here)* |
+
+---
+
+## 📦 Dependencies
+
+- `dio` - HTTP client for downloads
+- `http` - API requests
+- `path_provider` - File system access
+- `permission_handler` - Permission management
+- `video_player` - Video preview
+- `chewie` - Enhanced video player UI
+- `open_file` - Open downloaded files
+- `cupertino_icons` - iOS style icons
+
+---
+
+## 🛠️ Installation
+
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/yourusername/insta_reels.git
    cd insta_reels
    ```
 
-2. **Install dependencies**
+2. **Install dependencies:**
    ```bash
    flutter pub get
    ```
 
-3. **Run the app**
+3. **Run the app:**
    ```bash
    flutter run
    ```
 
-### Building for Production
+---
 
-**Android APK:**
-```bash
-flutter build apk --release
-```
+## ⚙️ Configuration
 
-**iOS:**
-```bash
-flutter build ios --release
-```
+- **API Key**: The app uses RapidAPI for Instagram media extraction. Update the API key and host in `lib/utils/constants.dart` if needed.
+- **File Storage**:
+  - **Android**: Files are saved to `/storage/emulated/0/Download/`
+  - **iOS**: Files are saved to the app's documents directory
+- **Permissions**: The app requests storage permissions to save files. Grant permissions when prompted.
 
-**Windows:**
-```bash
-flutter build windows --release
-```
+---
 
-## Usage
-
-1. **Launch the app** and grant storage permissions when prompted
-2. **Paste a social media URL** in the text field:
-   - Instagram: `https://www.instagram.com/p/...`
-   - TikTok: `https://www.tiktok.com/@user/video/...`
-3. **Tap "Fetch Media URL"** to extract the media information
-4. **Tap "Download"** to save the media to your device
-
-## Supported URL Formats
-
-### Instagram
-- Posts: `https://www.instagram.com/p/[POST_ID]/`
-- Reels: `https://www.instagram.com/reel/[REEL_ID]/`
-- Stories: `https://www.instagram.com/stories/[USERNAME]/[STORY_ID]/`
-
-### TikTok
-- Videos: `https://www.tiktok.com/@[USERNAME]/video/[VIDEO_ID]`
-- Shortened: `https://vt.tiktok.com/[SHORT_CODE]/`
-
-## Technical Details
-
-### Architecture
-- **Frontend**: Flutter with Material Design 3
-- **State Management**: Flutter's built-in StatefulWidget
-- **Network**: HTTP requests using `dio` and `http` packages
-- **Storage**: Local file system using `path_provider`
-- **Permissions**: `permission_handler` for storage access
-
-### Key Dependencies
-
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  dio: ^5.4.0              # HTTP client for downloads
-  http: ^1.1.0             # HTTP requests for API calls
-  path_provider: ^2.1.1    # File system access
-  permission_handler: ^11.3.1  # Storage permissions
-  cupertino_icons: ^1.0.8  # iOS-style icons
-```
-
-### Project Structure
+## 📂 Project Structure
 
 ```
 lib/
 ├── main.dart                 # App entry point
-├── models/
-│   └── media_info.dart      # Data models
-├── screens/
-│   └── download_screen.dart # Main download interface
-├── services/
-│   ├── instagram_service.dart  # Instagram API integration
-│   ├── download_service.dart   # File download logic
-│   └── permission_service.dart # Permission handling
-├── utils/
-│   └── constants.dart       # App constants
-└── widgets/
-    └── custom_button.dart   # Reusable UI components
+├── screens/                  # UI screens (Splash, Download)
+├── services/                 # Business logic (Instagram, Download, Permissions)
+├── models/                   # Data models (Media info)
+├── widgets/                  # Reusable UI components (Button, Previews)
+└── utils/                    # Constants and configuration
 ```
-
-## API Integration
-
-The app uses multiple approaches for media extraction:
-
-### Instagram
-- RapidAPI Instagram Downloader service
-- Direct Instagram API calls (where possible)
-
-### TikTok
-- Multiple free TikTok video extraction services
-- Web scraping fallback methods
-- Direct TikTok API integration
-
-## Permissions
-
-The app requires the following permissions:
-
-- **Storage**: To save downloaded media files
-- **Internet**: To fetch media from social media platforms
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Disclaimer
-
-This app is for educational purposes only. Please respect the terms of service of social media platforms and only download content that you have permission to download. The developers are not responsible for any misuse of this application.
-
-## Support
-
-If you encounter any issues or have questions:
-
-1. Check the [Issues](https://github.com/yourusername/insta_reels/issues) page
-2. Create a new issue with detailed information
-3. Include device information, Flutter version, and error logs
-
-## Changelog
-
-### Version 1.0.0
-- Initial release
-- Instagram reels and posts download support
-- TikTok video download support
-- Cross-platform compatibility
-- Modern Material Design 3 UI
 
 ---
 
-**Note**: This app is designed for personal use and educational purposes. Always respect copyright laws and platform terms of service.
+## 🧪 Running Tests
+
+```bash
+flutter test
+```
+*Note: The default widget test is included. Add more tests for better coverage!*
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'Add your feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+---
+
+**Built with ❤️ using Flutter**
+
+---
+
+Would you like this README saved as `README.md` in your project root, or do you want to update/replace the one in `lib/README.md`?
